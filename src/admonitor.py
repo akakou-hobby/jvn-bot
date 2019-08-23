@@ -35,7 +35,7 @@ class VulnInfo:
         self.product = rss_entry['sec_cpe']['product']
         
         self.severity = rss_entry['sec_cvss']['severity']
-        self.score = rss_entry['sec_cvss']['score']
+        self.cvss = rss_entry['sec_cvss']['score']
 
         self.link = rss_entry['link']
     
@@ -51,7 +51,7 @@ class VulnInfo:
             
             *緊急度*
             緊急度：{self.severity}
-            CVSS：{self.score}
+            CVSS：{self.cvss}
 
             {self.link}
             '''
@@ -90,8 +90,8 @@ def send_webhook(data):
     '''WEB HOOKを送信する'''
     requests.post(settings.WEB_HOOK_URL, data=json.dumps(data))
 
-
-if __name__=='__main__':
+def main():
+    '''メイン関数'''
     rss = VulnInfoRSS()
 
     for vuln in rss.feed():
@@ -102,3 +102,7 @@ if __name__=='__main__':
             'text': str(vuln),
             'link_names': 1
         })
+
+
+if __name__=='__main__':
+    main()
