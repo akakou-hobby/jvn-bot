@@ -18,6 +18,7 @@ import requests
 import feedparser
 
 import settings
+from model import session, Condition
 
 
 RSS_URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
@@ -35,7 +36,8 @@ class VulnInfo:
         self.product = rss_entry['sec_cpe']['product']
         
         self.severity = rss_entry['sec_cvss']['severity']
-        self.cvss = rss_entry['sec_cvss']['score']
+        str_cvss = rss_entry['sec_cvss']['score']
+        self.cvss = float(str_cvss)
 
         self.link = rss_entry['link']
     
@@ -63,8 +65,8 @@ class VulnInfo:
 class VulnInfoRSS:
     def __init__(self):
         now = time.time()
-        # self.last_time = datetime.fromtimestamp(now)
-        self.last_time = datetime.fromtimestamp(0)
+        self.last_time = datetime.fromtimestamp(now)
+        # self.last_time = datetime.fromtimestamp(0)
         self.last_id = ''
     
     def feed(self):
@@ -93,15 +95,24 @@ def send_webhook(data):
 def main():
     '''メイン関数'''
     rss = VulnInfoRSS()
+    conditions = session.query(Condition).all()
 
     for vuln in rss.feed():
-        time.sleep(5)
-        print(vuln)
+        channels = []
 
-        send_webhook({
-            'text': str(vuln),
-            'link_names': 1
-        })
+        for condition in conditions:
+            if condition.hit(vuln):
+                channels.append(condition.channel)
+
+        channels = list(set(channels))
+
+        for channel in channels:
+            send_webhook({
+                'text': str(vuln),
+                'link_names': 1,
+                'channel': channel
+            })
+            time.sleep(SLEEP)
 
 
 if __name__=='__main__':
