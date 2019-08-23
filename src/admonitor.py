@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''admonitor
 
-MyJVNからアラートをとってきて、Slackに送信する。
+MyJVNからアラートをとってきて、Slackに送信する
 '''
 
 __author__  = 'Kosei Akama'
@@ -10,6 +10,7 @@ __date__    = '2018/08/21'
 
 
 import json
+import textwrap
 
 import requests
 import feedparser
@@ -18,6 +19,41 @@ import settings
 
 
 URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
+
+
+class VulnInfo:
+    '''脆弱性情報'''
+    def __init__(self, rss_entry):
+        '''RSSのEntryから、オブジェクトを生成'''
+        self.title = rss_entry['title']
+        self.summary = rss_entry['summary']
+
+        self.vendor = rss_entry['sec_cpe']['vendor']
+        self.product = rss_entry['sec_cpe']['product']
+        
+        self.severity = rss_entry['sec_cvss']['severity']
+        self.score = rss_entry['sec_cvss']['score']
+
+        self.link = rss_entry['link']
+    
+    def __str__(self):
+        '''メッセージを生成する。'''
+        msg = f'''
+            *{self.title}* 
+            {self.summary}
+
+            *製品情報*
+            ベンダー名：{self.vendor}
+            製品名：{self.product}
+            
+            *緊急度*
+            緊急度：{self.severity}
+            CVSS：{self.score}
+
+            {self.link}
+            '''
+
+        return textwrap.dedent(msg)
 
 
 def send_webhook(data):
@@ -29,18 +65,12 @@ def get_rss():
 
 
 if __name__=='__main__':
-    # send_webhook({
-    #     'text': u'Hello, World!',
-    #     'link_names': 1
-    # })
-
     rss = get_rss()
     index = 0
-    print(rss['entries'][index]['title'])
 
-    print(rss['entries'][index]['sec_cpe']['vendor'])
-    print(rss['entries'][index]['sec_cpe']['product'])
-    print(rss['entries'][index]['sec_cvss']['severity'])
-    print(rss['entries'][index]['sec_cvss']['score'])
-    print(rss['entries'][index]['link'])
-    print(rss['entries'][index]['summary'])
+    vuln = VulnInfo(rss['entries'][index])
+
+    send_webhook({
+        'text': str(vuln),
+        'link_names': 1
+    })
