@@ -10,7 +10,9 @@ __date__    = '2018/08/21'
 
 
 import json
+import time
 import textwrap
+from datetime import datetime
 
 import requests
 import feedparser
@@ -18,7 +20,8 @@ import feedparser
 import settings
 
 
-URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
+RSS_URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
+SLEEP = 3
 
 
 class VulnInfo:
@@ -53,24 +56,49 @@ class VulnInfo:
             {self.link}
             '''
 
-        return textwrap.dedent(msg)
+        msg = msg.replace('  ', '')
+        return msg
+
+
+class VulnInfoRSS:
+    def __init__(self):
+        now = time.time()
+        # self.last_time = datetime.fromtimestamp(now)
+        self.last_time = datetime.fromtimestamp(0)
+        self.last_id = ''
+    
+    def feed(self):
+        '''RSSフィードをとってくるジェネレーター'''
+        while True:
+            feeds = feedparser.parse(RSS_URL)
+            entries = feeds['entries']
+
+            time.sleep(SLEEP)
+
+            for entry in entries[::-1]:
+                str_time = entry['published']
+                published_time = datetime.strptime(str_time, '%Y-%m-%dT%H:%M+09:00')
+
+                if self.last_time <= published_time and self.last_id != entry['id']:
+                    # TODO: ここの条件を見直し
+                    self.last_time = published_time
+                    self.last_id = entry['id']
+                    yield VulnInfo(entry)
 
 
 def send_webhook(data):
     '''WEB HOOKを送信する'''
     requests.post(settings.WEB_HOOK_URL, data=json.dumps(data))
 
-def get_rss():
-    return feedparser.parse(URL)
-
 
 if __name__=='__main__':
-    rss = get_rss()
-    index = 0
+    rss = VulnInfoRSS()
 
-    vuln = VulnInfo(rss['entries'][index])
+    for vuln in rss.feed():
+        time.sleep(5)
+        print(vuln)
 
-    send_webhook({
-        'text': str(vuln),
-        'link_names': 1
-    })
+        send_webhook({
+            'text': str(vuln),
+            'link_names': 1
+        })
