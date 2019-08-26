@@ -31,15 +31,18 @@ class Condition(Base):
         is_same_product = True
         is_cvss_higher = True
 
+        vendor = vuln.vendor.replace(' ', '')
+        product = vuln.product.replace(' ', '')
+
         if self.vendor:
-            is_same_vendor = self.vendor == vuln.vendor
+            is_same_vendor = self.vendor in vendor
 
         if self.product:
-            is_same_product = self.product == vuln.product
-    
+            is_same_product = self.product in product
+
         if self.cvss:
             is_cvss_higher = self.cvss <= vuln.cvss
-        
+
         return is_same_vendor \
             and is_same_product \
             and is_cvss_higher
@@ -50,10 +53,10 @@ Base.metadata.create_all(ENGINE)
 
 if __name__=='__main__':
     condition = Condition()
-    condition.channel = 'general'
-    condition.vendor = ''
+    condition.channel = 'じぇねらる'
+    condition.vendor = 'アドビ'
     condition.product = ''
-    condition.cvss = 9
+    condition.cvss = 1
 
     session.add(condition)
     session.commit()
