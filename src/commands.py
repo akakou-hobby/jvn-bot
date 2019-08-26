@@ -84,16 +84,17 @@ def info():
     token = request.form['token']
     channel = request.form['channel_name']
 
-    # if token == settings.SLASH_CMD_TOKEN:
-    conditions = session.query(Condition) \
-        .filter(Condition.channel == channel) \
-        .all()
-    
     msg = ''
 
-    for condition in conditions:
-        msg += str(condition)
-    
+    if token == settings.SLASH_CMD_TOKEN:
+        conditions = session.query(Condition) \
+            .filter(Condition.channel == channel) \
+            .all()
+        
+
+        for condition in conditions:
+            msg += str(condition)
+
     return msg
 
 @app.route(f'/del', methods=['GET', 'POST'])
@@ -104,17 +105,16 @@ def delete():
     channel = request.form['channel_name']
 
     msg = 'failed'
-    # if token == settings.SLASH_CMD_TOKEN:
+    if token == settings.SLASH_CMD_TOKEN:
+        if text.isdecimal():
+            _id = int(text)
+            condition = session.query(Condition) \
+                .filter(Condition._id == _id and Condition.channel == channel_name)
 
-    if text.isdecimal():
-        _id = int(text)
-        condition = session.query(Condition) \
-            .filter(Condition._id == _id and Condition.channel == channel_name)
-
-        if condition:
-            condition.delete()
-            session.commit()
-            msg = 'ok'
+            if condition:
+                condition.delete()
+                session.commit()
+                msg = 'ok'
 
     return msg
 
