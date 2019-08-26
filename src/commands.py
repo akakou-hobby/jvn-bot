@@ -97,7 +97,7 @@ def info():
 
     return msg
 
-@app.route(f'/del', methods=['GET', 'POST'])
+@app.route(f'/del', methods=['POST'])
 def delete():
     '''スラッシュコマンドを受け取る'''
     token = request.form['token']
