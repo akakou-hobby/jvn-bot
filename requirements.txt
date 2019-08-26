@@ -1,0 +1,4 @@
+sqlalchemy
+feedparser
+requests
+flask

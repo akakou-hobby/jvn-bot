@@ -95,6 +95,9 @@ def info():
         for condition in conditions:
             msg += str(condition)
 
+    if not msg:
+        msg = "フィルタは見つかりませんでした。"
+
     return msg
 
 @app.route(f'/del', methods=['POST'])

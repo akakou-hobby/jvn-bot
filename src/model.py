@@ -57,7 +57,7 @@ class Condition(Base):
         if self.product:
             msg += f'製品名：{self.product} を含む\n'
         
-        if self.vendor:
+        if self.cvss:
             msg += f'CVSS：{self.cvss} 以上\n'
 
         msg += '\n'
