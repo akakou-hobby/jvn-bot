@@ -78,7 +78,7 @@ def add():
 
     return 'ok'
 
-@app.route(f'/info', methods=['GET','POST'])
+@app.route(f'/info', methods=['POST'])
 def info():
     '''スラッシュコマンドを受け取る'''
     token = request.form['token']
@@ -95,6 +95,29 @@ def info():
         msg += str(condition)
     
     return msg
+
+@app.route(f'/del', methods=['GET', 'POST'])
+def delete():
+    '''スラッシュコマンドを受け取る'''
+    token = request.form['token']
+    text = request.form['text']
+    channel = request.form['channel_name']
+
+    msg = 'failed'
+    # if token == settings.SLASH_CMD_TOKEN:
+
+    if text.isdecimal():
+        _id = int(text)
+        condition = session.query(Condition) \
+            .filter(Condition._id == _id and Condition.channel == channel_name)
+
+        if condition:
+            condition.delete()
+            session.commit()
+            msg = 'ok'
+
+    return msg
+
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=80, debug=False)
