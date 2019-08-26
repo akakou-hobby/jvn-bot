@@ -62,8 +62,8 @@ class Command:
 
         return condition
 
-@app.route(f'/slash', methods=['POST'])
-def index():
+@app.route(f'/add', methods=['POST'])
+def add():
     '''スラッシュコマンドを受け取る'''
     token = request.form['token']
     text = request.form['text']
@@ -78,6 +78,23 @@ def index():
 
     return 'ok'
 
+@app.route(f'/info', methods=['GET','POST'])
+def info():
+    '''スラッシュコマンドを受け取る'''
+    token = request.form['token']
+    channel = request.form['channel_name']
+
+    # if token == settings.SLASH_CMD_TOKEN:
+    conditions = session.query(Condition) \
+        .filter(Condition.channel == channel) \
+        .all()
+    
+    msg = ''
+
+    for condition in conditions:
+        msg += str(condition)
+    
+    return msg
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=80, debug=False)
