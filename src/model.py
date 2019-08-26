@@ -47,6 +47,24 @@ class Condition(Base):
             and is_same_product \
             and is_cvss_higher
 
+    def __str__(self):
+        '''メッセージを生成する。'''
+        msg = f'*ID: {self._id}*\n'
+
+        if self.vendor:
+            msg += f'ベンダー名：{self.vendor} を含む\n'
+        
+        if self.product:
+            msg += f'製品名：{self.product} を含む\n'
+        
+        if self.vendor:
+            msg += f'CVSS：{self.cvss} 以上\n'
+
+        msg += '\n'
+
+        msg = msg.replace('  ', '')
+        return msg
+
 
 Base.metadata.create_all(ENGINE)
 

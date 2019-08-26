@@ -62,8 +62,8 @@ class Command:
 
         return condition
 
-@app.route(f'/slash', methods=['POST'])
-def index():
+@app.route(f'/add', methods=['POST'])
+def add():
     '''スラッシュコマンドを受け取る'''
     token = request.form['token']
     text = request.form['text']
@@ -77,6 +77,46 @@ def index():
         session.commit()
 
     return 'ok'
+
+@app.route(f'/info', methods=['POST'])
+def info():
+    '''スラッシュコマンドを受け取る'''
+    token = request.form['token']
+    channel = request.form['channel_name']
+
+    msg = ''
+
+    if token == settings.SLASH_CMD_TOKEN:
+        conditions = session.query(Condition) \
+            .filter(Condition.channel == channel) \
+            .all()
+        
+
+        for condition in conditions:
+            msg += str(condition)
+
+    return msg
+
+@app.route(f'/del', methods=['GET', 'POST'])
+def delete():
+    '''スラッシュコマンドを受け取る'''
+    token = request.form['token']
+    text = request.form['text']
+    channel = request.form['channel_name']
+
+    msg = 'failed'
+    if token == settings.SLASH_CMD_TOKEN:
+        if text.isdecimal():
+            _id = int(text)
+            condition = session.query(Condition) \
+                .filter(Condition._id == _id and Condition.channel == channel_name)
+
+            if condition:
+                condition.delete()
+                session.commit()
+                msg = 'ok'
+
+    return msg
 
 
 if __name__ == '__main__':
