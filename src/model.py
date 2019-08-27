@@ -53,10 +53,10 @@ class Condition(Base):
 
         if self.vendor:
             msg += f'ベンダー名：{self.vendor} を含む\n'
-        
+
         if self.product:
             msg += f'製品名：{self.product} を含む\n'
-        
+
         if self.cvss:
             msg += f'CVSS：{self.cvss} 以上\n'
 
@@ -74,7 +74,7 @@ if __name__=='__main__':
     condition.channel = 'じぇねらる'
     condition.vendor = 'アドビ'
     condition.product = ''
-    condition.cvss = 1
+    condition.cvss = 0
 
     session.add(condition)
     session.commit()

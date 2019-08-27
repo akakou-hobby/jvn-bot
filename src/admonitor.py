@@ -83,8 +83,6 @@ class VulnInfoRSS:
 
             for entry in self.split_updated(feeds):
                 yield VulnInfo(entry)
-            
-            print('loop')
 
     def split_updated(self, feeds):
         entries = feeds['entries']
