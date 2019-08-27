@@ -23,9 +23,7 @@ import settings
 from model import session, Condition
 
 
-ALERT_CHANNEL = 'alert'
-RSS_URL = 'http://localhost:8000/main.rdf'
-
+RSS_URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
 SLEEP = 10
 
 
@@ -127,7 +125,7 @@ if __name__=='__main__':
         error = traceback.format_exc()
 
         sc.chat_postMessage(
-            channel=ALERT_CHANNEL,
+            channel=settings.ALERT_CHANNEL,
             text=error
         )
 

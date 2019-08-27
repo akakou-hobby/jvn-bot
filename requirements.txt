@@ -1,4 +1,4 @@
 sqlalchemy
 feedparser
-requests
 flask
+slackclient
