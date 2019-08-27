@@ -36,7 +36,10 @@ class Command:
         text = text.replace(' ', '')
 
         for cmd in text.split(','):
-            key, value = cmd.split(':')
+            try:
+                key, value = cmd.split(':')
+            except ValueError as e:
+                continue
 
             if key == 'vendor':
                 self.vendor = value
