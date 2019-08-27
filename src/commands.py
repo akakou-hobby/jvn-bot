@@ -112,12 +112,14 @@ def delete():
         if text.isdecimal():
             _id = int(text)
             condition = session.query(Condition) \
-                .filter(Condition._id == _id and Condition.channel == channel_name)
+                .filter(Condition._id == _id, Condition.channel == channel)
 
             if condition:
                 condition.delete()
                 session.commit()
                 msg = 'ok'
+            else:
+                msg = 'not found'
 
     return msg
 

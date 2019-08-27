@@ -24,7 +24,8 @@ from model import session, Condition
 
 
 ALERT_CHANNEL = 'alert'
-RSS_URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
+RSS_URL = 'http://localhost:8000/main.rdf'
+
 SLEEP = 10
 
 
@@ -70,8 +71,8 @@ class VulnInfo:
 class VulnInfoRSS:
     def __init__(self):
         now = time.time()
-        # self.last_time = datetime.fromtimestamp(now)
-        self.last_time = datetime.fromtimestamp(0)
+        self.last_time = datetime.fromtimestamp(now)
+        # self.last_time = datetime.fromtimestamp(0)
         self.last_id = ''
     
     def read_feed(self):
@@ -82,6 +83,8 @@ class VulnInfoRSS:
 
             for entry in self.split_updated(feeds):
                 yield VulnInfo(entry)
+            
+            print('loop')
 
     def split_updated(self, feeds):
         entries = feeds['entries']
@@ -89,10 +92,11 @@ class VulnInfoRSS:
         for entry in entries[::-1]:
             str_time = entry['published']
             published_time = datetime.strptime(str_time, '%Y-%m-%dT%H:%M+09:00')
+            _id = entry['id']
 
-            if self.last_time <= published_time and self.last_id != entry['id']:
+            if self.last_time <= published_time and self.last_id != _id:
                 self.last_time = published_time
-                self.last_id = entry['id']
+                self.last_id = _id
                 yield entry
 
 
