@@ -9,21 +9,26 @@ __version__ = '0.1'
 __date__    = '2018/08/21'
 
 
-import json
+import sys
 import time
+import json
 import textwrap
+import traceback
 from datetime import datetime
 
-import requests
 import feedparser
+from slack import WebClient as SlackClient
 
 import settings
 from model import session, Condition
 
 
+ALERT_CHANNEL = 'alert'
 RSS_URL = 'https://jvndb.jvn.jp/ja/rss/jvndb_new.rdf'
-SLEEP = 3
+SLEEP = 10
 
+
+sc = SlackClient(settings.CLIENT_TOKEN)
 
 class VulnInfo:
     '''脆弱性情報'''
@@ -65,39 +70,38 @@ class VulnInfo:
 class VulnInfoRSS:
     def __init__(self):
         now = time.time()
-        self.last_time = datetime.fromtimestamp(now)
-        # self.last_time = datetime.fromtimestamp(0)
+        # self.last_time = datetime.fromtimestamp(now)
+        self.last_time = datetime.fromtimestamp(0)
         self.last_id = ''
     
-    def feed(self):
+    def read_feed(self):
         '''RSSフィードをとってくるジェネレーター'''
         while True:
             feeds = feedparser.parse(RSS_URL)
-            entries = feeds['entries']
-
             time.sleep(SLEEP)
 
-            for entry in entries[::-1]:
-                str_time = entry['published']
-                published_time = datetime.strptime(str_time, '%Y-%m-%dT%H:%M+09:00')
+            for entry in self.split_updated(feeds):
+                yield VulnInfo(entry)
 
-                if self.last_time <= published_time and self.last_id != entry['id']:
-                    # TODO: ここの条件を見直し
-                    self.last_time = published_time
-                    self.last_id = entry['id']
-                    yield VulnInfo(entry)
+    def split_updated(self, feeds):
+        entries = feeds['entries']
 
+        for entry in entries[::-1]:
+            str_time = entry['published']
+            published_time = datetime.strptime(str_time, '%Y-%m-%dT%H:%M+09:00')
 
-def send_webhook(data):
-    '''WEB HOOKを送信する'''
-    requests.post(settings.WEB_HOOK_URL, data=json.dumps(data))
+            if self.last_time <= published_time and self.last_id != entry['id']:
+                self.last_time = published_time
+                self.last_id = entry['id']
+                yield entry
+
 
 def main():
     '''メイン関数'''
     rss = VulnInfoRSS()
     conditions = session.query(Condition).all()
 
-    for vuln in rss.feed():
+    for vuln in rss.read_feed():
         channels = []
 
         for condition in conditions:
@@ -107,13 +111,22 @@ def main():
         channels = list(set(channels))
 
         for channel in channels:
-            send_webhook({
-                'text': str(vuln),
-                'link_names': 1,
-                'channel': channel
-            })
+            sc.chat_postMessage(
+                channel=channel,
+                text=str(vuln)
+            )
             time.sleep(SLEEP)
 
 
 if __name__=='__main__':
-    main()
+    try:
+       main()
+    except:
+        error = traceback.format_exc()
+
+        sc.chat_postMessage(
+            channel=ALERT_CHANNEL,
+            text=error
+        )
+
+        print(error, file=sys.stderr)
