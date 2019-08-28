@@ -33,17 +33,40 @@ class VulnInfo:
     '''脆弱性情報'''
     def __init__(self, rss_entry):
         '''RSSのEntryから、オブジェクトを生成'''
-        self.title = rss_entry['title']
-        self.summary = rss_entry['summary']
+        self.title = ''
+        self.summary = ''
+        self.vendor = ''
+        self.product = ''
+        self.severity = ''
+        self.cvss = 0.0
+        self.link = ''
 
-        self.vendor = rss_entry['sec_cpe']['vendor']
-        self.product = rss_entry['sec_cpe']['product']
+        # TODO: cerberusの利用 
+        if 'title' in rss_entry:
+            self.title = rss_entry['title']
         
-        self.severity = rss_entry['sec_cvss']['severity']
-        str_cvss = rss_entry['sec_cvss']['score']
-        self.cvss = float(str_cvss)
+        if 'summary' in rss_entry:
+            self.summary = rss_entry['summary']
+        
+        if 'sec_cpe' in rss_entry:
+            if 'vendor' in rss_entry['sec_cpe']:
+                self.vendor = rss_entry['sec_cpe']['vendor']
+        
+        if 'sec_cpe' in rss_entry:
+            if 'product' in rss_entry['sec_cpe']:
+                self.product = rss_entry['sec_cpe']['product']
 
-        self.link = rss_entry['link']
+        if 'sec_cvss' in rss_entry:
+            if 'severity' in rss_entry['sec_cvss']:
+                self.severity = rss_entry['sec_cvss']['severity']
+        
+        if 'sec_cvss' in rss_entry:
+            if 'score' in rss_entry['sec_cvss']:
+                str_cvss = rss_entry['sec_cvss']['score']
+                self.cvss = float(str_cvss)
+
+        if 'link' in rss_entry:
+            self.link = rss_entry['link']
     
     def __str__(self):
         '''メッセージを生成する。'''
@@ -71,6 +94,9 @@ class VulnInfoRSS:
         now = time.time()
         self.last_time = datetime.fromtimestamp(now)
         # self.last_time = datetime.fromtimestamp(0)
+        # str_datetime = '2019-08-27 11:30:00'
+        # self.last_time = datetime.strptime(str_datetime, '%Y-%m-%d %H:%M:%S')
+
         self.last_id = ''
     
     def read_feed(self):
